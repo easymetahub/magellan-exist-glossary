@@ -6,7 +6,7 @@ xquery version "3.1";
  :
  : Date: May 17, 2019
  :
- : Copyright (c) 2019. EasyMetaHub, LLC
+ : Copyright (c) 2019. Magellan AI Corporation
  :
  : Proprietary
  : Extensions: eXist-db
@@ -23,7 +23,7 @@ xquery version "3.1";
  : within a module.
  :)
 
-module namespace config="http://exist-db.org/apps/emh-glossary/config";
+module namespace config="http://exist-db.org/apps/magellan-glossary/config";
 declare namespace templates="http://exist-db.org/xquery/templates";
 
 declare namespace repo="http://exist-db.org/xquery/repo";

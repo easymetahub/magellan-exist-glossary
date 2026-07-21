@@ -1,7 +1,7 @@
 {
   "name": "emh-exist-glossary",
-  "short_name": "emh-glossary",
-  "description": "EasyMetaHub Glossary application",
+  "short_name": "magellan-glossary",
+  "description": "Magellan AI Glossary application",
   "start_url": "/",
   "display": "standalone"
 }

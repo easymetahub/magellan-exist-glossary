@@ -6,7 +6,7 @@ xquery version "3.1";
  :
  : Date: May 17, 2019
  :
- : Copyright (c) 2019. EasyMetaHub, LLC
+ : Copyright (c) 2019. Magellan AI Corporation
  :
  : Proprietary
  : Extensions: eXist-db
@@ -26,10 +26,10 @@ xquery version "3.1";
  : @since May 17, 2019
  : @version 1.0
  :)
-module namespace custom="http://easymetahub.com/emh-glossary/library/custom";
+module namespace custom="https://magellanmeta.ai/magellan-glossary/library/custom";
 
-import module namespace config="http://exist-db.org/apps/emh-glossary/config" at "../config.xqm";
-import module namespace emhjson="http://easymetahub.com/emh-glossary/library/json" at "../emh-json.xqm";
+import module namespace config="http://exist-db.org/apps/magellan-glossary/config" at "../config.xqm";
+import module namespace emhjson="https://magellanmeta.ai/magellan-glossary/library/json" at "../emh-json.xqm";
 import module namespace kwic="http://exist-db.org/xquery/kwic";
 
 declare namespace rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#";
@@ -229,9 +229,11 @@ as map(*)
     let $nodes :=
         for $node at $index in $file//rdf:RDF/*
         let $rdfabout := fn:replace($node/@rdf:about/string(), "#", "")
-        let $id := if (fn:string-length($rdfabout) gt 0) 
+        let $id := if (fn:string-length($rdfabout) gt 0)
                     then $node/local-name() || "-" || $rdfabout
                     else $node/local-name()
+        (: eXist resource names cannot contain URI separators like ':' or '/'. :)
+        let $resource-id := fn:replace($id, "[^A-Za-z0-9._-]", "_") || "-" || $index
         let $envelope :=
             element { "env:envelope" } {
                 element { "env:headers" } {
@@ -242,7 +244,7 @@ as map(*)
                 element { "env:instance" } { $node }
             }
         let $stored :=
-            xmldb:store($config:data-root || "/" || $glossary, $id || '.xml', $envelope)
+            xmldb:store($config:data-root || "/" || $glossary, $resource-id || '.xml', $envelope)
         return ()
     return 
         map {

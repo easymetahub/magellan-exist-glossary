@@ -1,4 +1,4 @@
-# EasyMetaHub Glossary for an eXist-db project
+# Magellan AI Glossary for an eXist-db project
 
 ## Introduction
 
@@ -17,11 +17,11 @@ for uses other than a glossary manager.
 #### About the author
 
 [Loren Cahlander](https://www.linkedin.com/in/lorencahlander/) is the creator of
-this tool and the [sister glossary application](https://github.com/easymetahub/emh-marklogic-glossary)
+this tool and the [sister glossary application](https://github.com/magellan-ai-glossary/magellan-marklogic-glossary)
 for MarkLogic.
 
 #### Consulting 
-[EasyMetaHub](http://easymetahub.com) is available for consulting in developing your
+[Magellan AI](https://magellanmeta.ai) is available for consulting in developing your
 own customization of this tool.
 
 
@@ -29,20 +29,23 @@ own customization of this tool.
 
 ### Requirements
 
-* Gradle 
-[https://gradle.org/install/](https://gradle.org/install/)
-* npm 
-[https://www.npmjs.com/get-npm](https://www.npmjs.com/get-npm)
-* Polymer-cli 
-[https://polymer-library.polymer-project.org/3.0/docs/tools/polymer-cli#install](https://polymer-library.polymer-project.org/3.0/docs/tools/polymer-cli#install)
+* JDK 17
+* Gradle 8.x — [https://gradle.org/install/](https://gradle.org/install/)
+* npm / Node 20+ — [https://nodejs.org/](https://nodejs.org/)
 
 ### Building
 
-In the root directory of the application run:
+Build the full XAR (XQuery + resources + Lit 3 public and admin frontends):
 
-```gradle buildXAR```
+```
+gradle buildXAR
+```
 
-The build is in the ```build``` directory.
+The build output is in the ```build``` directory.
+
+The legacy Polymer 3 sources under `src/main/polymer/` and the `polymer-cli`
+dependency were removed in Phase 2d. The Lit ports live under
+`src/main/lit/base/` and `src/main/lit/admin/`.
 
 ### Customization
 
@@ -50,7 +53,7 @@ The customizations for this project template are in:
 
 - src/main/xquery/modules/custom/custom.xqm
 - src/main/resources/collection.xconf
-- src/main/polymer/src/emh-accelerator-app/result-item.js
+- src/main/lit/base/src/result-item.ts
 
 ## Basic installation and getting started is here:
 
@@ -76,66 +79,72 @@ Select the 'Package Manager'
 
 ![images/package-manager.png](images/package-manager.png)
 
-Click on 'Upload' and select emh-glossary-0.8.0.xar
+Click on 'Upload' and select magellan-glossary-0.9.0-alpha.3.xar
 
 ![images/package-upload.png](images/package-upload.png)
 
-The EMH Glossary shows up in the installed list.
+The Magellan AI Glossary shows up in the installed list.
 
 ![images/package-manager-2.png](images/package-manager-2.png)
 
 Close the dialog and you will get this:
 
-![images/emh-glossary-00.png](images/emh-glossary-00.png)
+![images/magellan-glossary-00.png](images/magellan-glossary-00.png)
 
 Type *Galaxy* in the search bar.
 
-![images/emh-glossary-01.png](images/emh-glossary-01.png)
+![images/magellan-glossary-01.png](images/magellan-glossary-01.png)
 
 You can then select a facet to narrow the search results.  You can also expand a result item by selecting *Show Details*
 
-![images/emh-glossary-02.png](images/emh-glossary-02.png)
+![images/magellan-glossary-02.png](images/magellan-glossary-02.png)
 
 If you select one of the buttons for *Related*, *Broader*, or *Narrower*, then you will be hyperlinked to that *Concept*
 
-![images/emh-glossary-03.png](images/emh-glossary-03.png)
+![images/magellan-glossary-03.png](images/magellan-glossary-03.png)
 
 ## Authentication and Authorization
 
 This glossary manager in searchable as a *guest*.  In order to manage the glossaries, then you need to go the the *Administration* screen.  Click on *HELLO GUEST*.
 
-![images/emh-glossary-04.png](images/emh-glossary-04.png)
+![images/magellan-glossary-04.png](images/magellan-glossary-04.png)
 
 This page shown the user as logged in.
 
-![images/emh-glossary-05.png](images/emh-glossary-05.png)
+![images/magellan-glossary-05.png](images/magellan-glossary-05.png)
 
 Click on the username to get details of the user.
 
-![images/emh-glossary-06.png](images/emh-glossary-06.png)
+![images/magellan-glossary-06.png](images/magellan-glossary-06.png)
 
 The details about the user show up in a dialog, including the groups that the user is part of.
 
-![images/emh-glossary-07.png](images/emh-glossary-07.png)
+![images/magellan-glossary-07.png](images/magellan-glossary-07.png)
 
 ## Administration
 
 In order to go to the administration screen, you need to be logged in as part of the *emh* group and click on the *gear* icon.
 
-![images/emh-glossary-08.png](images/emh-glossary-08.png)
+![images/magellan-glossary-08.png](images/magellan-glossary-08.png)
 
 This page shows the list of glossaries that are loaded and the ability to load more glossaries.
 
-![images/emh-glossary-10.png](images/emh-glossary-10.png)
+![images/magellan-glossary-10.png](images/magellan-glossary-10.png)
 
 You can delete a glossary by clicking on the trash can by the name.  You can add glossaries by uploading RDF files containing either SKOS or SKOS-XL.
 
-Sample glossaries can be found here: 
-[https://github.com/easymetahub/emh-exist-glossary/tree/master/samples](https://github.com/easymetahub/emh-exist-glossary/tree/master/samples)
+Sample glossaries are in the local `samples/` folder, including `IVOAT.rdf` and
+`W3C-SKOS-Primer-Animal.rdf`.
+
+You can check RDF/XML compatibility before upload with:
+
+```bash
+python3 tools/rdf_compat_check.py samples/*.rdf
+```
 
 Click on the chevron next tothe Administration header to return the the search page.
 
 
 ## Donation
 
-If you find this template application useful, then I would appreciate a contribution to the development through PayPal to loren.cahlander@easymetahub.com
+If you find this template application useful, then I would appreciate a contribution to the development through PayPal to loren@magellanmeta.ai

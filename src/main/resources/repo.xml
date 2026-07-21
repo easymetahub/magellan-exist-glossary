@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <meta 
   xmlns="http://exist-db.org/xquery/repo">
-  <description>EMH Glossary</description>
+  <description>Magellan AI Glossary</description>
   <author>Loren Cahlander</author>
-  <website>http://easymetahub.com</website>
+  <website>https://magellanmeta.ai</website>
   <status>SNAPSHOT</status>
   <license>MIT</license>
   <copyright>true</copyright>
   <type>application</type>
-  <target>emh-glossary</target>
+  <target>magellan-glossary</target>
   <prepare>pre-install.xql</prepare>
   <finish>post-install.xql</finish>
   <permissions user="emh" group="emh" mode="rw-rw-rw-"/>

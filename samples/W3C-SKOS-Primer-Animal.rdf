@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Derived from examples in the W3C SKOS Primer: https://www.w3.org/TR/skos-primer/
+  W3C documents are available under the W3C Document License.
+-->
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:skos="http://www.w3.org/2008/05/skos#">
+
+  <skos:ConceptScheme rdf:about="https://www.w3.org/2009/08/skos-reference/animals">
+    <skos:prefLabel xml:lang="en">Animal Concepts</skos:prefLabel>
+    <skos:definition xml:lang="en">Small SKOS sample derived from W3C primer examples.</skos:definition>
+  </skos:ConceptScheme>
+
+  <skos:Concept rdf:about="https://www.w3.org/2009/08/skos-reference/animals#animals">
+    <skos:inScheme rdf:resource="https://www.w3.org/2009/08/skos-reference/animals"/>
+    <skos:prefLabel xml:lang="en">animals</skos:prefLabel>
+    <skos:definition xml:lang="en">Living organisms that feed on organic matter.</skos:definition>
+    <skos:narrower rdf:resource="https://www.w3.org/2009/08/skos-reference/animals#mammals"/>
+    <skos:narrower rdf:resource="https://www.w3.org/2009/08/skos-reference/animals#birds"/>
+  </skos:Concept>
+
+  <skos:Concept rdf:about="https://www.w3.org/2009/08/skos-reference/animals#mammals">
+    <skos:inScheme rdf:resource="https://www.w3.org/2009/08/skos-reference/animals"/>
+    <skos:prefLabel xml:lang="en">mammals</skos:prefLabel>
+    <skos:altLabel xml:lang="en">mammalia</skos:altLabel>
+    <skos:broader rdf:resource="https://www.w3.org/2009/08/skos-reference/animals#animals"/>
+    <skos:related rdf:resource="https://www.w3.org/2009/08/skos-reference/animals#birds"/>
+  </skos:Concept>
+
+  <skos:Concept rdf:about="https://www.w3.org/2009/08/skos-reference/animals#birds">
+    <skos:inScheme rdf:resource="https://www.w3.org/2009/08/skos-reference/animals"/>
+    <skos:prefLabel xml:lang="en">birds</skos:prefLabel>
+    <skos:altLabel xml:lang="en">aves</skos:altLabel>
+    <skos:broader rdf:resource="https://www.w3.org/2009/08/skos-reference/animals#animals"/>
+    <skos:related rdf:resource="https://www.w3.org/2009/08/skos-reference/animals#mammals"/>
+  </skos:Concept>
+
+</rdf:RDF>
+

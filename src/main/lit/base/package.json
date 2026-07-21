@@ -1,0 +1,19 @@
+{
+  "name": "magellan-glossary-lit",
+  "private": true,
+  "version": "0.9.0-alpha.3",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@shoelace-style/shoelace": "^2.15.1",
+    "lit": "^3.1.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vite": "^5.2.11"
+  }
+}

@@ -6,7 +6,7 @@ xquery version "3.1";
  :
  : Date: May 17, 2019
  :
- : Copyright (c) 2019. EasyMetaHub, LLC
+ : Copyright (c) 2019. Magellan AI Corporation
  :
  : Proprietary
  : Extensions: eXist-db
@@ -24,7 +24,7 @@ xquery version "3.1";
  : @since May 17, 2019
  : @version 1.0
  :)
-import module namespace custom="http://easymetahub.com/emh-glossary/library/custom" at "custom/custom.xqm";
+import module namespace custom="https://magellanmeta.ai/magellan-glossary/library/custom" at "custom/custom.xqm";
 import module namespace functx = "http://www.functx.com";
 
 declare namespace skos="http://www.w3.org/2004/02/skos/core#";

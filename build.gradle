@@ -3,7 +3,8 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
+        maven { url 'https://raw.githubusercontent.com/xqdoc/xqdoc/mvn-repo' }
     }
 
     dependencies {
@@ -11,8 +12,12 @@ buildscript {
     }
 }
 
+// Note: no `java` plugin needed — the XAR is a Zip of XQuery + resources.
+// JDK 17 is enforced via .tool-versions / CI.
+
 repositories {
-  jcenter()
+    mavenCentral()
+    maven { url 'https://raw.githubusercontent.com/xqdoc/xqdoc/mvn-repo' }
 }
 
 class XQDocFilter extends BaseFilterReader {
@@ -22,103 +27,106 @@ class XQDocFilter extends BaseFilterReader {
 }
 
 /**
- * Polymer 
+ * Front-end build:
+ *   The Lit 3 frontends (public UI + admin UI) in src/main/lit are always
+ *   built by Vite and bundled into the XAR. The legacy Polymer 3 sources
+ *   were removed in Phase 2d.
  */
 
-task npmInstallBase(type: Exec) {
-    String npm = 'npm';
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        npm = 'npm.cmd'
-    }
-    workingDir 'src/main/polymer/base'
-    commandLine npm, 'install'
+// -------- Lit 3 (Vite) frontends -----------------------------------------
+
+task npmInstallLitBase(type: Exec) {
+    String npm = Os.isFamily(Os.FAMILY_WINDOWS) ? 'npm.cmd' : 'npm'
+    workingDir 'src/main/lit/base'
+    commandLine npm, 'ci'
 }
 
-task polymerBuildBase(type: Exec) {
-    String polymer = 'polymer';
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        polymer = 'polymer.cmd'
-    }
-    workingDir 'src/main/polymer/base/'
-    commandLine polymer, 'build'
+task viteBuildBase(type: Exec) {
+    String npm = Os.isFamily(Os.FAMILY_WINDOWS) ? 'npm.cmd' : 'npm'
+    workingDir 'src/main/lit/base'
+    commandLine npm, 'run', 'build'
 }
 
-task copyPolymerBase(type: Copy) {
-  into 'build/default'
-  from 'src/main/polymer/base/build/default'
+task copyLitBase(type: Copy) {
+    from 'src/main/lit/base/dist'
+    into 'build/default'
 }
 
-task npmInstallAdmin(type: Exec) {
-    String npm = 'npm';
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        npm = 'npm.cmd'
-    }
-    workingDir 'src/main/polymer/admin'
-    commandLine npm, 'install'
+task npmInstallLitAdmin(type: Exec) {
+    String npm = Os.isFamily(Os.FAMILY_WINDOWS) ? 'npm.cmd' : 'npm'
+    workingDir 'src/main/lit/admin'
+    commandLine npm, 'ci'
 }
 
-task polymerBuildAdmin(type: Exec) {
-    String polymer = 'polymer';
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        polymer = 'polymer.cmd'
-    }
-    workingDir 'src/main/polymer/admin/'
-    commandLine polymer, 'build'
+task viteBuildAdmin(type: Exec) {
+    String npm = Os.isFamily(Os.FAMILY_WINDOWS) ? 'npm.cmd' : 'npm'
+    workingDir 'src/main/lit/admin'
+    commandLine npm, 'run', 'build'
 }
 
-task copyPolymerAdmin(type: Copy) {
-  into 'build/default/admin'
-  from 'src/main/polymer/admin/build/default'
+task copyLitAdmin(type: Copy) {
+    from 'src/main/lit/admin/dist'
+    into 'build/default/admin'
 }
+
+task cleanDefaultOutput(type: Delete) {
+    delete 'build/default'
+}
+
+// -------- XQuery + resources --------------------------------------------
 
 task copyModules(type: Copy) {
-  into 'build/default'
-  from 'src/main/xquery'
+    into 'build/default'
+    from 'src/main/xquery'
 }
 
 task copyResources(type: Copy) {
-  into 'build/default'
-  from 'src/main/resources'
+    into 'build/default'
+    from 'src/main/resources'
 }
+
+// -------- xqDoc generation ----------------------------------------------
 
 task generateXQDocs(type: Copy) {
-  into 'xqDoc'
-  from 'src/main/xquery'
-  include '**/*.xq*'
-  rename { it - '.xq*' + '.xml' } 
-  includeEmptyDirs = false
-  eachFile { println it }
-  filter XQDocFilter
+    into 'xqDoc'
+    from 'src/main/xquery'
+    include '**/*.xq*'
+    rename { it - '.xq*' + '.xml' }
+    includeEmptyDirs = false
+    eachFile { println it }
+    filter XQDocFilter
 }
 
-def xqDocTree = fileTree(dir:'xqDoc', excludes:['openapi.json'])
+def xqDocTree = fileTree(dir: 'xqDoc', excludes: ['openapi.json'])
 task fsTeardownXQDocs(type: Delete) {
-  delete xqDocTree
+    delete xqDocTree
 }
-
-task buildXAR(type: Zip) {
-   from 'build/default/'
-   include '*'
-   include '*/**' //to include contents of a folder present inside build/default directory
-   archiveName 'emh-glossary-0.8.1.xar'
-   destinationDir(file('build/'))
-}
-
-
-
-// Task dependencies
-buildXAR.dependsOn copyModules
-buildXAR.dependsOn copyResources
-// Base polymer page
-buildXAR.dependsOn copyPolymerBase
-copyPolymerBase.dependsOn polymerBuildBase
-polymerBuildBase.dependsOn npmInstallBase
-// Admin polymer page
-buildXAR.dependsOn copyPolymerAdmin
-copyPolymerAdmin.dependsOn polymerBuildAdmin
-polymerBuildAdmin.dependsOn npmInstallAdmin
-
-
 
 generateXQDocs.mustRunAfter(fsTeardownXQDocs)
 
+// -------- XAR packaging --------------------------------------------------
+
+task buildXAR(type: Zip) {
+    from 'build/default/'
+    include '*'
+    include '*/**'
+    archiveFileName = 'magellan-glossary-0.9.0-alpha.3.xar'
+    destinationDirectory = file('build/')
+}
+
+// Task dependencies
+copyModules.dependsOn cleanDefaultOutput
+copyResources.dependsOn cleanDefaultOutput
+copyLitBase.dependsOn cleanDefaultOutput
+copyLitAdmin.dependsOn cleanDefaultOutput
+
+buildXAR.dependsOn copyModules
+buildXAR.dependsOn copyResources
+
+buildXAR.dependsOn copyLitBase
+copyLitBase.dependsOn viteBuildBase
+viteBuildBase.dependsOn npmInstallLitBase
+
+buildXAR.dependsOn copyLitAdmin
+copyLitAdmin.dependsOn viteBuildAdmin
+viteBuildAdmin.dependsOn npmInstallLitAdmin

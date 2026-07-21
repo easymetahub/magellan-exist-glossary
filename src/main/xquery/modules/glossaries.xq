@@ -6,7 +6,7 @@ xquery version "3.1";
  : @author Loren Cahlander
  :)
 
-import module namespace config="http://exist-db.org/apps/emh-glossary/config" at "config.xqm";
+import module namespace config="http://exist-db.org/apps/magellan-glossary/config" at "config.xqm";
 import module namespace functx = "http://www.functx.com";
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
