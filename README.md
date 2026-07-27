@@ -1,23 +1,32 @@
-# eXist-db Search Template (SKOS / SKOS-XL)
+# RAG-Ready Taxonomy Search Template (eXist-db + SKOS/SKOS-XL)
 
-This repository is a template application for building faceted search experiences on eXist-db.
+This repository is a template application for building taxonomy-first search experiences on eXist-db that can serve as retrieval infrastructure for RAG pipelines.
 
-It is also a working reference implementation for glossary use cases based on SKOS and SKOS-XL RDF data.
+It includes a working implementation for glossary and concept navigation using SKOS/SKOS-XL RDF data, while emphasizing production-ready retrieval and customization patterns.
 
 ## Purpose
 
-- Provide a reusable eXist-db search app skeleton (XQuery backend + web frontend).
-- Show how to ingest and manage multiple glossaries in SKOS/SKOS-XL.
-- Demonstrate configurable faceting, result rendering, and glossary relationships.
+- Provide a reusable eXist-db taxonomy search skeleton (XQuery backend + web frontend).
+- Support ingestion and management of multiple SKOS/SKOS-XL glossaries as retrieval corpora.
+- Demonstrate configurable faceting, relationship-aware navigation, and concept detail retrieval.
 - Make domain customization straightforward without rewriting core search plumbing.
+- Enable clean downstream handoff of search results to RAG orchestration layers.
 
 ## What This Template Implements
 
 - `Search UI`: Lit 3 frontend with debounced query search, facets, paging, and detail expansion.
-- `Glossary Relations`: Related/Broader/Narrower controls that update search state.
+- `Taxonomy Relations`: Related/Broader/Narrower controls that update search state.
 - `Admin UI`: upload/delete glossary data and inspect loaded glossaries.
 - `eXist-db APIs`: XQuery modules for search, upload, delete, auth identity, and glossary listing.
+- `RAG-Oriented Retrieval`: structured concept payloads designed to be repurposed for grounding/context assembly.
 - `Packaging`: build to an installable `.xar` archive for eXist-db package manager.
+
+## Why This Is RAG-Ready
+
+- `Grounded retrieval`: concept lookups are anchored to controlled taxonomy entities instead of raw keyword snippets.
+- `Relationship-aware expansion`: broader/narrower/related links help build richer context windows for LLM prompts.
+- `Facet filtering`: narrows retrieval to domain-specific slices before prompt construction.
+- `Custom mapping hook`: `src/main/xquery/modules/custom/custom.xqm` lets you shape output payloads for downstream embedding/reranking/generation workflows.
 
 ## Selected Architecture
 
@@ -95,7 +104,7 @@ Architecture and request/data flow:
 
 - `docs/ARCHITECTURE.md`
 
-## SKOS and SKOS-XL Notes
+## SKOS/SKOS-XL Implementation Notes
 
 - The admin flow supports uploading RDF glossaries.
 - The app demonstrates concepts and semantic relationships used in SKOS/SKOS-XL:
@@ -133,7 +142,12 @@ build.gradle                 Build orchestration and XAR packaging
 
 This project is intentionally both:
 
-- a `template` for eXist-db search applications, and
-- an `example implementation` of SKOS/SKOS-XL glossary search/management.
+- a `template` for RAG-ready taxonomy search applications, and
+- a `reference implementation` of SKOS/SKOS-XL concept search/management.
 
 You can keep the architecture and replace the domain model, or keep the glossary model and tailor behavior/UI for your organization.
+
+## Built With GitHub Copilot
+
+Parts of this project were developed and refined with assistance from GitHub Copilot.
+
