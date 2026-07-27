@@ -6,8 +6,9 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import {
     BrowserRouter as Router,
-    Switch,
-    Route
+    Routes,
+    Route,
+    Link
 } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -22,21 +23,17 @@ function App() {
         <Router>
         <Navbar bg="dark" variant="dark" fixed="top">
         <Navbar.Brand href="/"><img alt="" src="https://avatars3.githubusercontent.com/u/2393489?s=200&v=4" weign="40" height="40"/> My React Application</Navbar.Brand>
-    <Nav className="mr-auto">
-        <Nav.Link href="/">Home</Nav.Link>
-        <Nav.Link href="/features">Features</Nav.Link>
-        <Nav.Link href="/pricing">Pricing</Nav.Link>
+    <Nav className="me-auto">
+        <Nav.Link as={Link} to="/">Home</Nav.Link>
+        <Nav.Link as={Link} to="/features">Features</Nav.Link>
+        <Nav.Link as={Link} to="/pricing">Pricing</Nav.Link>
         </Nav>
         </Navbar>
         <div className="full">
-        <Switch>
-        <Route path="/features">
-            <h1>Features</h1>
-        </Route>
-        <Route path="/pricing">
-            <h1>Pricing</h1>
-        </Route>
-        <Route path="/">
+        <Routes>
+        <Route path="/features" element={<h1>Features</h1>} />
+        <Route path="/pricing" element={<h1>Pricing</h1>} />
+        <Route path="*" element={(
             <Container style={{width: "100%", margin: 0, padding: 0}} fluid>
                 <Row>
                     <Col md={2} style={{margin: 0, padding: 0}}>
@@ -59,8 +56,8 @@ function App() {
                     </Col>
                 </Row>
             </Container>
-        </Route>
-        </Switch>
+        )} />
+        </Routes>
         </div>
         </Router>
 );

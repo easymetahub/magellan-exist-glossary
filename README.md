@@ -1,150 +1,139 @@
-# Magellan AI Glossary for an eXist-db project
+# eXist-db Search Template (SKOS / SKOS-XL)
 
-## Introduction
+This repository is a template application for building faceted search experiences on eXist-db.
 
-This application is a SKOS glossary manager and faceted search application that can 
-manage multiple glossaries.  It is intended for organizations that need to manage
-one or more glossaries.
+It is also a working reference implementation for glossary use cases based on SKOS and SKOS-XL RDF data.
 
+## Purpose
 
-There a many projects out there that do not require the power of MarkLogic and the licensing fees for it as well.  
-[http://history.state.gov](http://history.state.gov) is one such project.  It has been using eXist-db as its hosting platform.
+- Provide a reusable eXist-db search app skeleton (XQuery backend + web frontend).
+- Show how to ingest and manage multiple glossaries in SKOS/SKOS-XL.
+- Demonstrate configurable faceting, result rendering, and glossary relationships.
+- Make domain customization straightforward without rewriting core search plumbing.
 
-It was created as an easily customizable search application.  It abstracts out the
-common code for faceted search and gives an easy development interface to customize
-for uses other than a glossary manager.
+## What This Template Implements
 
-#### About the author
+- `Search UI`: Lit 3 frontend with debounced query search, facets, paging, and detail expansion.
+- `Glossary Relations`: Related/Broader/Narrower controls that update search state.
+- `Admin UI`: upload/delete glossary data and inspect loaded glossaries.
+- `eXist-db APIs`: XQuery modules for search, upload, delete, auth identity, and glossary listing.
+- `Packaging`: build to an installable `.xar` archive for eXist-db package manager.
 
-[Loren Cahlander](https://www.linkedin.com/in/lorencahlander/) is the creator of
-this tool and the [sister glossary application](https://github.com/magellan-ai-glossary/magellan-marklogic-glossary)
-for MarkLogic.
+## Selected Architecture
 
-#### Consulting 
-[Magellan AI](https://magellanmeta.ai) is available for consulting in developing your
-own customization of this tool.
+- `Backend`: XQuery modules in `src/main/xquery/modules/`
+  - `search.xq`, `upload.xq`, `delete.xq`, `glossaries.xq`, `who-am-i.xq`
+  - `custom/custom.xqm` for project-specific mapping/query behavior
+- `Public frontend`: Lit app in `src/main/lit/base/`
+  - root app: `src/main/lit/base/src/emh-accelerator-app.ts`
+- `Admin frontend`: Lit app in `src/main/lit/admin/`
+- `Static/resources`: `src/main/resources/`
+  - package metadata: `src/main/resources/expath-pkg.xml`, `src/main/resources/repo.xml`
+  - eXist collection config: `src/main/resources/collection.xconf`
+- `Build`: Gradle orchestrates npm + Vite builds and XAR assembly via `build.gradle`
 
+## Versioning and Package Sync
 
-## Development
+- The package version is defined once in `src/main/resources/expath-pkg.xml` (`@version`).
+- `build.gradle` reads that value and uses it in the generated XAR filename.
+- Result: `expath-pkg.xml` metadata and built XAR filename stay in sync automatically.
 
-### Requirements
+## Requirements
 
-* JDK 17
-* Gradle 8.x — [https://gradle.org/install/](https://gradle.org/install/)
-* npm / Node 20+ — [https://nodejs.org/](https://nodejs.org/)
+- JDK 17
+- eXist-db 5+ (faceting support)
+- Node.js 20+ and npm
+- Gradle wrapper in repo (`./gradlew`)
 
-### Building
-
-Build the full XAR (XQuery + resources + Lit 3 public and admin frontends):
-
-```
-gradle buildXAR
-```
-
-The build output is in the ```build``` directory.
-
-The legacy Polymer 3 sources under `src/main/polymer/` and the `polymer-cli`
-dependency were removed in Phase 2d. The Lit ports live under
-`src/main/lit/base/` and `src/main/lit/admin/`.
-
-### Customization
-
-The customizations for this project template are in:
-
-- src/main/xquery/modules/custom/custom.xqm
-- src/main/resources/collection.xconf
-- src/main/lit/base/src/result-item.ts
-
-## Basic installation and getting started is here:
-
-Download version 5 of eXist-db following the instructions here: 
-[http://exist-db.org/exist/apps/doc/basic-installation](http://exist-db.org/exist/apps/doc/basic-installation)
-
-Version 5 of eXist-db is required for the faceting feature.
-
-The initial view when you open your browser to 
-[http://localhost:8080](http://localhost:8080) is:
-
-![images/eXist-start.png](images/eXist-start.png)
-
-Click login and usee the username admin with no password.
-
-![images/login.png](images/login.png)
-
-You will then see the page 
-
-![images/launcher-1.png](images/launcher-1.png)
-
-Select the 'Package Manager'
-
-![images/package-manager.png](images/package-manager.png)
-
-Click on 'Upload' and select magellan-glossary-0.9.0-alpha.3.xar
-
-![images/package-upload.png](images/package-upload.png)
-
-The Magellan AI Glossary shows up in the installed list.
-
-![images/package-manager-2.png](images/package-manager-2.png)
-
-Close the dialog and you will get this:
-
-![images/magellan-glossary-00.png](images/magellan-glossary-00.png)
-
-Type *Galaxy* in the search bar.
-
-![images/magellan-glossary-01.png](images/magellan-glossary-01.png)
-
-You can then select a facet to narrow the search results.  You can also expand a result item by selecting *Show Details*
-
-![images/magellan-glossary-02.png](images/magellan-glossary-02.png)
-
-If you select one of the buttons for *Related*, *Broader*, or *Narrower*, then you will be hyperlinked to that *Concept*
-
-![images/magellan-glossary-03.png](images/magellan-glossary-03.png)
-
-## Authentication and Authorization
-
-This glossary manager in searchable as a *guest*.  In order to manage the glossaries, then you need to go the the *Administration* screen.  Click on *HELLO GUEST*.
-
-![images/magellan-glossary-04.png](images/magellan-glossary-04.png)
-
-This page shown the user as logged in.
-
-![images/magellan-glossary-05.png](images/magellan-glossary-05.png)
-
-Click on the username to get details of the user.
-
-![images/magellan-glossary-06.png](images/magellan-glossary-06.png)
-
-The details about the user show up in a dialog, including the groups that the user is part of.
-
-![images/magellan-glossary-07.png](images/magellan-glossary-07.png)
-
-## Administration
-
-In order to go to the administration screen, you need to be logged in as part of the *emh* group and click on the *gear* icon.
-
-![images/magellan-glossary-08.png](images/magellan-glossary-08.png)
-
-This page shows the list of glossaries that are loaded and the ability to load more glossaries.
-
-![images/magellan-glossary-10.png](images/magellan-glossary-10.png)
-
-You can delete a glossary by clicking on the trash can by the name.  You can add glossaries by uploading RDF files containing either SKOS or SKOS-XL.
-
-Sample glossaries are in the local `samples/` folder, including `IVOAT.rdf` and
-`W3C-SKOS-Primer-Animal.rdf`.
-
-You can check RDF/XML compatibility before upload with:
+## Build and Package
 
 ```bash
+cd /Users/lcahlander/IdeaProjects/emh-exist-glossary
+./gradlew buildXAR
+```
+
+Output:
+- XAR file in `build/` named `magellan-glossary-<version>.xar`
+- where `<version>` is read from `src/main/resources/expath-pkg.xml`
+
+Clean build artifacts and frontend build directories:
+
+```bash
+cd /Users/lcahlander/IdeaProjects/emh-exist-glossary
+./gradlew clean
+```
+
+## Install in eXist-db
+
+1. Start eXist-db and open the dashboard.
+2. Go to Package Manager.
+3. Upload the built XAR from `build/`.
+4. Open the installed app from the launcher.
+
+## Template Customization Guide
+
+When adapting this repo to a new domain, focus on these extension points first:
+
+- `Search behavior and result payload`: `src/main/xquery/modules/custom/custom.xqm`
+- `Collection indexing and full-text behavior`: `src/main/resources/collection.xconf`
+- `Result card rendering`: `src/main/lit/base/src/result-item.ts`
+- `Top-level search interactions/state`: `src/main/lit/base/src/emh-accelerator-app.ts`
+
+Recommended customization workflow:
+
+1. Replace sample/source data with your RDF datasets.
+2. Adjust extraction/mapping logic in `custom.xqm`.
+3. Tune index config in `collection.xconf` for your fields/facets.
+4. Update result display components and labels.
+5. Rebuild XAR and test search/facets in eXist-db.
+
+Detailed step-by-step checklist:
+
+- `docs/CUSTOMIZATION-CHECKLIST.md`
+
+Architecture and request/data flow:
+
+- `docs/ARCHITECTURE.md`
+
+## SKOS and SKOS-XL Notes
+
+- The admin flow supports uploading RDF glossaries.
+- The app demonstrates concepts and semantic relationships used in SKOS/SKOS-XL:
+  - preferred labels
+  - alternative labels
+  - broader / narrower / related links
+- Sample files are provided in `samples/`.
+
+Validate RDF/XML inputs before upload:
+
+```bash
+cd /Users/lcahlander/IdeaProjects/emh-exist-glossary
 python3 tools/rdf_compat_check.py samples/*.rdf
 ```
 
-Click on the chevron next tothe Administration header to return the the search page.
+## Authentication and Authorization
 
+- Search is available to guest users.
+- Administrative actions are gated by eXist-db user/group membership.
+- Admin access is surfaced in the UI when the logged-in user belongs to the expected admin groups.
 
-## Donation
+## Repository Layout
 
-If you find this template application useful, then I would appreciate a contribution to the development through PayPal to loren@magellanmeta.ai
+```text
+src/main/xquery/modules/     XQuery endpoints and custom search logic
+src/main/lit/base/           Public Lit frontend
+src/main/lit/admin/          Admin Lit frontend
+src/main/resources/          eXist package metadata and static resources
+samples/                     Example RDF/SKOS/SKOS-XL inputs
+tools/                       Utility scripts (RDF compatibility checks)
+build.gradle                 Build orchestration and XAR packaging
+```
+
+## Project Positioning
+
+This project is intentionally both:
+
+- a `template` for eXist-db search applications, and
+- an `example implementation` of SKOS/SKOS-XL glossary search/management.
+
+You can keep the architecture and replace the domain model, or keep the glossary model and tailor behavior/UI for your organization.

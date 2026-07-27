@@ -5,6 +5,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import '@shoelace-style/shoelace/dist/components/button/button.js';
+import { setParams } from './router.js';
 
 export interface ResultItemBinding {
   glossary: string;
@@ -15,10 +16,8 @@ export interface ResultItemBinding {
 /**
  * `<result-item-button>` — a single glossary-scoped facet chip.
  *
- * Polymer parity: on click, emits a `params-change` CustomEvent whose
- * `detail` is `{ facets: "<glossary>~~<label>", selected: true }`.
- * Parents replace the Polymer `notify: true` two-way binding by listening
- * to `@params-change`.
+ * On click, updates query params via router.ts so the root app receives
+ * the window `params-change` event and runs a new search.
  */
 @customElement('result-item-button')
 export class ResultItemButton extends LitElement {
@@ -30,14 +29,10 @@ export class ResultItemButton extends LitElement {
   @property({ type: Object }) item: ResultItemBinding = { glossary: '', label: '', name: '' };
 
   private _selectLink = () => {
-    const facets = [this.item.glossary, this.item.label].join('~~');
-    this.dispatchEvent(
-      new CustomEvent('params-change', {
-        detail: { facets, selected: true },
-        bubbles: true,
-        composed: true
-      })
-    );
+    const selectedName = this.item.name;
+    const facetValue = this.item.label ?? selectedName;
+    const facets = [this.item.glossary, facetValue].join('~~');
+    setParams({ q: selectedName, facets, start: '' });
   };
 
   render() {

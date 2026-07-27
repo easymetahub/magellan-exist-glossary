@@ -26,6 +26,14 @@ class XQDocFilter extends BaseFilterReader {
     }
 }
 
+// Keep package version in exactly one place:
+// src/main/resources/expath-pkg.xml @version drives the XAR file name.
+def expathPkg = new groovy.xml.XmlSlurper(false, false).parse(file('src/main/resources/expath-pkg.xml'))
+def xarVersion = expathPkg.@version.text()
+if (!xarVersion) {
+    throw new GradleException('Missing @version in src/main/resources/expath-pkg.xml')
+}
+
 /**
  * Front-end build:
  *   The Lit 3 frontends (public UI + admin UI) in src/main/lit are always
@@ -118,7 +126,7 @@ task buildXAR(type: Zip) {
     from 'build/default/'
     include '*'
     include '*/**'
-    archiveFileName = 'magellan-glossary-0.9.0-alpha.3.xar'
+    archiveFileName = "magellan-glossary-${xarVersion}.xar"
     destinationDirectory = file('build/')
 }
 

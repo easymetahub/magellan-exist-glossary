@@ -196,6 +196,7 @@ export class EmhAcceleratorApp extends LitElement {
 
   private _onParams = () => {
     this._params = getParams();
+    this._search = this._params.q ?? '';
     void this._runSearch();
   };
 
@@ -400,19 +401,23 @@ export class EmhAcceleratorApp extends LitElement {
         : ''}
 
       <dialog id="emhinfo">
-        <h2>Magellan AI</h2>
-        <h3>Data Stewardship</h3>
+        <h2>Magellan AI Glossary Template</h2>
+        <h3>About This Application</h3>
         <p>
-          At Magellan AI, we help our clients manage their data assets. We work
-          closely with our users throughout development to ensure that we remain
-          aligned with the end-goal.
+          This application is an eXist-db search template for glossary and terminology
+          projects. It provides faceted search, paging, and semantic navigation across
+          SKOS and SKOS-XL concepts.
         </p>
-        <h3>Data Migration</h3>
         <p>
-          One of the largest and most complicated parts of any development
-          project is the data migration from an old data source to a new data
-          source. Our tools take a complicated and time-consuming process and
-          make it manageable.
+          It is designed to be customized for new domains by adapting XQuery mappings,
+          index configuration, and result rendering while reusing the core search and
+          administration workflow.
+        </p>
+        <h3>About Magellan AI</h3>
+        <p>
+          Magellan AI helps organizations design and deliver practical metadata,
+          taxonomy, and search solutions. We focus on implementation quality,
+          maintainable architecture, and measurable delivery outcomes.
         </p>
         <p>
           Please visit us at
