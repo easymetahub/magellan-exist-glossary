@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.0.0 — 2026-07-27
+
+### RAG Documentation
+- Expanded `README.md` and `docs/ARCHITECTURE.md` to explicitly position the app as a taxonomy-grounded retrieval layer for RAG orchestration.
+- Clarified retrieval contract details, including optional `countCapped` behavior for broad queries.
+
+### eXist-db 7.0.0-Focused Updates
+- Search and facet performance hardening for broad terms (for example `q=star`):
+  - adaptive facet scope and capped-count behavior in `search.xq`
+  - facet label lookup caching and bounded extended facet materialization in `custom/custom.xqm`
+- Indexing updates in `collection.xconf`:
+  - added range fields for glossary and relation paths
+  - renamed generic range field `id` to `concept-about-id` to avoid Lucene field-structure conflicts
+- Endpoint hardening:
+  - `who-am-i.xq` supports explicit logout payload behavior
+  - `delete.xq` now returns structured success/error payloads
+  - `upload.xq` validates extension, size, XML parseability, and RDF root before ingest
+- Added/extended migration validation tooling:
+  - Gradle `beta3Preflight` task
+  - smoke-test pagination/facet regression checks in `tools/exist_smoke_test.py`
+
+### Open Source Licensing
+- Added MIT `LICENSE` file.
+- Updated UI footer and README license section to reflect open-source licensing.
+
 ## 0.9.0-alpha.3 — 2026-07-20
 
 ### Rebranding

@@ -28,6 +28,27 @@ It includes a working implementation for glossary and concept navigation using S
 - `Facet filtering`: narrows retrieval to domain-specific slices before prompt construction.
 - `Custom mapping hook`: `src/main/xquery/modules/custom/custom.xqm` lets you shape output payloads for downstream embedding/reranking/generation workflows.
 
+This project is intentionally a **retrieval layer** for RAG, not a full answer-generation stack. It provides taxonomy-grounded retrieval APIs and corpus management workflows that plug into an external orchestrator/LLM service.
+
+## eXist-db 7.0.0 Update Summary
+
+The current package metadata requires `semver-min=7.0.0-beta3` in `src/main/resources/expath-pkg.xml`, and the codebase has been updated with 7.0.0-line migration and performance hardening in mind:
+
+- `Search performance guards`:
+  - broad-query protection in `search.xq` (`total` can be capped and exposed via `countCapped`)
+  - adaptive facet scope for high-hit queries to avoid long-running facet aggregation
+  - facet label caching + bounded extended facet values in `custom.xqm`
+- `Indexing updates`:
+  - range index expansion for glossary and relation/resource fields in `collection.xconf`
+  - renamed conflicting generic field `id` to `concept-about-id` to avoid Lucene field-structure conflicts
+- `Admin/auth hardening`:
+  - explicit logout response support in `who-am-i.xq`
+  - structured success/error payloads in `delete.xq` (instead of unconditional success)
+  - stricter upload validation in `upload.xq` (extension, size, XML parse, RDF root)
+- `Operational validation`:
+  - `beta3Preflight` Gradle task and expanded smoke checks in `tools/exist_smoke_test.py`
+  - pagination/facet regression test options for search behavior checks
+
 ## RAG Integration Blueprint
 
 Use this app as the retrieval layer in a larger RAG stack.
@@ -48,7 +69,7 @@ flowchart LR
 
 - `GET modules/search.xq`
   - Query params: `q`, `facets`, `start`, `pagelength`, optional `debug`
-  - Returns JSON: `{ total, available, facets, results }`
+  - Returns JSON: `{ total, available, countCapped?, facets, results }`
 - `GET modules/glossaries.xq`
   - Returns available glossary names for corpus scoping/filter UX.
 
@@ -121,6 +142,26 @@ Accept: application/json
 4. Optionally expand/cluster context using `related`, `broader`, and `narrower` links.
 5. Pass grounded context to your LLM prompt template.
 
+### RAG Quickstart (CLI Adapter)
+
+Use `tools/rag_quickstart.py` as a tiny orchestrator adapter. It calls `modules/search.xq` and emits grounded context blocks from taxonomy fields and snippets.
+
+Generate JSON context blocks:
+
+```bash
+cd /Users/lcahlander/IdeaProjects/emh-exist-glossary
+python3 tools/rag_quickstart.py --query "aberration" --pagelength 5 --max-blocks 5 --output json
+```
+
+Generate prompt-ready plain text:
+
+```bash
+cd /Users/lcahlander/IdeaProjects/emh-exist-glossary
+python3 tools/rag_quickstart.py --query "aberration" --facets "Glossary:IVOAT" --output prompt
+```
+
+The emitted blocks include term, definition, alt labels, broader/narrower/related relations, optional snippets, and source URI so an external LLM service can cite grounded context.
+
 ## Selected Architecture
 
 - `Backend`: XQuery modules in `src/main/xquery/modules/`
@@ -151,11 +192,11 @@ Accept: application/json
 
 | Runtime | Status | Notes |
 |---|---|---|
-| eXist-db 6.4.1 + Java 17 | Known baseline | Prior baseline for current packaging; keep as fallback during migration. |
-| eXist-db 7.0.0-beta3 + Java 21 | Current evaluation target | Best beta to validate migration and RAG retrieval behavior. |
-| eXist-db 7.0.0-beta1 / beta2 | Do not target directly | Superseded by beta3; no app-specific benefit to pin older betas. |
+| eXist-db 7.0.0 + Java 21 | Preferred target | Recommended runtime for production-style validation of search/index/auth behavior. |
+| eXist-db 7.0.0-beta3 + Java 21 | Minimum package metadata target | Package dependency currently pins `semver-min=7.0.0-beta3`. |
+| eXist-db 6.4.1 + Java 17 | Legacy baseline only | Historical reference point; this package no longer targets 6.x at install metadata level. |
 
-> eXist-db 7.0.0 betas are prerelease software. Validate with backups and smoke tests before using outside test environments.
+> If you move to a newer 7.x patch release, keep your deployment validation loop: build, install, reindex, and run smoke + regression checks.
 
 ## Build and Package
 
@@ -175,7 +216,7 @@ cd /Users/lcahlander/IdeaProjects/emh-exist-glossary
 ./gradlew clean
 ```
 
-Run migration preflight checks for eXist-db 7 beta environments:
+Run migration preflight checks for eXist-db 7.x environments:
 
 ```bash
 cd /Users/lcahlander/IdeaProjects/emh-exist-glossary

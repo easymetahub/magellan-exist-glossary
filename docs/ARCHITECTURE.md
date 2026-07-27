@@ -116,17 +116,31 @@ These endpoints form the retrieval contract when this app is used as the retriev
 
 | Endpoint | Method | Query/Form Params | Response Shape | RAG Use |
 |---|---|---|---|---|
-| `modules/search.xq` | `GET` | `q`, `facets`, `start`, `pagelength`, optional `debug` | `{ total, available, facets, results }` where each result includes `concept`, `snippets`, `uri`, `glossary`, `score` | Primary grounded retrieval |
+| `modules/search.xq` | `GET` | `q`, `facets`, `start`, `pagelength`, optional `debug` | `{ total, available, countCapped?, facets, results }` where each result includes `concept`, `snippets`, `uri`, `glossary`, `score` | Primary grounded retrieval |
 | `modules/glossaries.xq` | `GET` | none | JSON array of glossary names | Corpus discovery and scope filters |
 | `modules/upload.xq` | `POST` (multipart) | form field `my-attachment` (one or more files) | `{ results: [{ responseFilename, messages[] }] }` | Ingestion/update of retrieval corpus |
-| `modules/delete.xq` | `GET` | `glossary` | `{ success: true }` | Corpus maintenance and lifecycle |
-| `modules/who-am-i.xq` | `GET` | optional `user` | user identity/group JSON | Auth-aware admin workflows |
+| `modules/delete.xq` | `GET` | `glossary` | `{ success, glossary?, error?, message? }` | Corpus maintenance and lifecycle |
+| `modules/who-am-i.xq` | `GET` | optional `user`, optional `logout=true` | user identity/group JSON; logout returns guest payload | Auth-aware admin workflows |
 
 ### Search Payload Notes
 
 - `facets` parameter accepts one or more facet tokens separated by `~~`.
 - A facet token uses `facet:value` format (with URI-encoding/quoting handled by helper logic).
 - `results[].concept` carries taxonomy context (`term`, `definition`, `altLabel`, `related`, `broader`, `narrower`) for prompt grounding.
+- `countCapped=true` indicates broad-query guardrails were applied to keep latency predictable.
+
+## eXist-db 7.0.0-Focused Backend Updates
+
+- Search pipeline now includes broad-query guardrails in `search.xq`:
+  - capped total-count mode for expensive text queries
+  - adaptive facet source selection for large hit sets
+- Facet materialization in `custom.xqm` now caches relation label lookups and limits extended facet value fan-out.
+- `collection.xconf` index updates include additional range fields and a renamed concept id field (`concept-about-id`) to avoid field-structure collisions in Lucene.
+- Admin/security endpoint updates:
+  - `who-am-i.xq` supports explicit logout response handling
+  - `delete.xq` returns structured auth/delete status payloads
+  - `upload.xq` validates extension/size/XML/RDF root before ingest
+- Public UI search requests use timeout handling and user warning behavior for long-running requests.
 
 ### RAG Retrieval Data Flow
 
@@ -165,8 +179,8 @@ flowchart LR
 
 | Runtime | Status | Validation Focus |
 |---|---|---|
-| eXist-db 6.4.1 + Java 17 | Known baseline | Existing behavior reference point during migration checks. |
-| eXist-db 7.0.0-beta3 + Java 21 | Migration target | Full-text relevance, facet counts, auth/group behavior, upload/delete flows. |
+| eXist-db 7.0.0 + Java 21 | Preferred target | Full-text relevance, broad-query latency, facet behavior, auth/group behavior, upload/delete flows. |
+| eXist-db 7.0.0-beta3 + Java 21 | Metadata minimum | Package `semver-min` baseline for current build metadata. |
 
 Recommended migration validation command:
 

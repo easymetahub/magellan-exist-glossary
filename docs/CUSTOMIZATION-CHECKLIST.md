@@ -27,6 +27,8 @@ python3 tools/rdf_compat_check.py samples/*.rdf
 - [ ] Ensure all facetable fields are indexed.
 - [ ] Ensure full-text search targets the intended fields.
 - [ ] Re-check indexing assumptions after loading real data volume.
+- [ ] Verify field names in range/lucene configs do not collide with incompatible field structures.
+- [ ] Confirm SKOS/SKOS-XL namespace paths in queries and index expressions match your RDF input.
 
 ## 4) Customize backend search behavior
 
@@ -34,6 +36,7 @@ python3 tools/rdf_compat_check.py samples/*.rdf
 - [ ] Verify output payload shape consumed by frontend components.
 - [ ] Confirm relationship arrays and labels are returned as expected.
 - [ ] Validate pagination and facet behavior through `src/main/xquery/modules/search.xq`.
+- [ ] Validate broad-query latency (for example `q=star`) and verify timeout/guardrail behavior is acceptable.
 
 ## 5) Customize frontend presentation
 
