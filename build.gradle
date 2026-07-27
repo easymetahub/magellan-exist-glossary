@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "org.xqdoc:xqdoc:1.9.9"
+        classpath "org.xqdoc:xqdoc:1.9.9.2"
     }
 }
 
@@ -71,6 +71,14 @@ task copyLitAdmin(type: Copy) {
 
 task cleanDefaultOutput(type: Delete) {
     delete 'build/default'
+}
+
+task clean(type: Delete) {
+    delete 'build'
+    delete 'src/main/lit/admin/dist'
+    delete 'src/main/lit/admin/node_modules'
+    delete 'src/main/lit/base/dist'
+    delete 'src/main/lit/base/node_modules'
 }
 
 // -------- XQuery + resources --------------------------------------------

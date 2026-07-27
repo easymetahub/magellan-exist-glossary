@@ -43,7 +43,7 @@ function App() {
                         <Container style={{width: "100%", margin: 0, padding: 0}}>
                             {a.map(i => {
                                 return (
-                                    <FacetItem item={i} />
+                                    <FacetItem key={`facet-${i}`} item={i} />
                                 )
                             })}
                         </Container>
@@ -52,7 +52,7 @@ function App() {
                         <Container style={{width: "100%", margin: 0, padding: 0}} fluid>
                             {b.map(i => {
                                 return (
-                                    <ResultItem item={i} />
+                                    <ResultItem key={`result-${i}`} item={i} />
                                 )
                             })}
                         </Container>
