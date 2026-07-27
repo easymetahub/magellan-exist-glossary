@@ -42,10 +42,37 @@
         </lucene>
         <range>
             <create
+                qname="env:headers">
+                <field
+                    name="glossary-name"
+                    match="env:glossaryName"
+                    type="xs:string"></field>
+            </create>
+            <create
                 qname="skos:Concept">
                 <field
-                    name="id"
+                    name="concept-about-id"
                     match="@rdf:about"
+                    type="xs:string"></field>
+                <field
+                    name="pref-label"
+                    match="skos:prefLabel"
+                    type="xs:string"></field>
+                <field
+                    name="alt-label"
+                    match="skos:altLabel"
+                    type="xs:string"></field>
+                <field
+                    name="broader-resource"
+                    match="skos:broader/@rdf:resource"
+                    type="xs:string"></field>
+                <field
+                    name="narrower-resource"
+                    match="skos:narrower/@rdf:resource"
+                    type="xs:string"></field>
+                <field
+                    name="related-resource"
+                    match="skos:related/@rdf:resource"
                     type="xs:string"></field>
             </create>
         </range>

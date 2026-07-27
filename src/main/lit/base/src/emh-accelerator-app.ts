@@ -38,6 +38,7 @@ interface SearchResponse {
 
 const FACET_SEP = '~~';
 const DEBOUNCE_MS = 1000;
+const SEARCH_TIMEOUT_MS = 60_000;
 const ADMIN_GROUPS = new Set(['emh', 'dba']);
 
 @customElement('emh-accelerator-app')
@@ -219,6 +220,11 @@ export class EmhAcceleratorApp extends LitElement {
   private async _runSearch() {
     this._searchAbort?.abort();
     this._searchAbort = new AbortController();
+    let timedOut = false;
+    const timeoutId = window.setTimeout(() => {
+      timedOut = true;
+      this._searchAbort?.abort();
+    }, SEARCH_TIMEOUT_MS);
     this._loading = true;
     try {
       const params: Record<string, string | number> = { ...this._params };
@@ -230,8 +236,12 @@ export class EmhAcceleratorApp extends LitElement {
     } catch (err) {
       if ((err as DOMException)?.name !== 'AbortError') {
         console.error('search failed', err);
+      } else if (timedOut) {
+        console.error(`search timed out after ${SEARCH_TIMEOUT_MS / 1000}s`);
+        window.alert(`Search timed out after ${SEARCH_TIMEOUT_MS / 1000} seconds. Please refine your query and try again.`);
       }
     } finally {
+      clearTimeout(timeoutId);
       this._loading = false;
     }
   }
@@ -389,7 +399,7 @@ export class EmhAcceleratorApp extends LitElement {
               (item) => html`<result-item .item=${item} .params=${this._params}></result-item>`,
             )}
             <div class="card copyright">
-              Copyright © 2018 Magellan AI Corporation. All rights reserved.
+              Copyright © 2018-2026 Magellan AI Corporation. Open source under the MIT License.
             </div>
             <footer class="spacer"></footer>
           </section>

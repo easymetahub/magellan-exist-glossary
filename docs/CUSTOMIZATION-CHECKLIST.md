@@ -72,6 +72,12 @@ cd /Users/lcahlander/IdeaProjects/emh-exist-glossary
 - [ ] Verify query search, facet filters, and pagination.
 - [ ] Verify relationship navigation from result details.
 - [ ] Verify admin screen visibility and actions by role.
+- [ ] Run endpoint smoke checks using `tools/exist_smoke_test.py`.
+
+```bash
+cd /Users/lcahlander/IdeaProjects/emh-exist-glossary
+python3 tools/exist_smoke_test.py --base-url "http://localhost:8080/exist/apps/magellan-glossary"
+```
 
 ## 10) Release readiness
 

@@ -80,8 +80,25 @@ let $query-results2 :=
         else ()
     else $query-results
 
-let $search-count := fn:count($query-results2)
+let $is-text-search := fn:string-length($q) gt 0
+let $query-count-limit := 1000
+let $count-source :=
+    if ($is-text-search)
+    then fn:subsequence($query-results2, 1, $query-count-limit + 1)
+    else $query-results2
+let $search-count-raw := fn:count($count-source)
+let $count-capped := $is-text-search and $search-count-raw gt $query-count-limit
+let $search-count :=
+    if ($count-capped)
+    then $query-count-limit
+    else $search-count-raw
 let $search-results := $query-results2[$start le position() and position() le $end]
+(: For very broad matches, page-scoped facets keep query latency predictable. :)
+let $facet-max-docs := 250
+let $facet-source :=
+    if ($search-count le $facet-max-docs)
+    then $query-results2
+    else $search-results
 
 
 let $facet-names := 
@@ -103,8 +120,8 @@ let $unselected-facet-names := $facet-names[not(.=$selected-facet-names)]
 
 let $selected-facets := 
     for $facet-name in $selected-facet-names
-    let $facet := if ($search-count gt 0) then ft:facets($search-results, $facet-name, ()) else ()
-    return 
+    let $facet := if ($search-count gt 0) then ft:facets($facet-source, $facet-name, ()) else ()
+    return
         if (fn:exists($facet) and fn:count(map:keys($facet)) gt 0) 
         then custom:facet-object($facet, $facet-name, $facets-param) 
         else ()
@@ -112,8 +129,8 @@ let $selected-facets :=
 
 let $unselected-facets := 
     for $facet-name in $unselected-facet-names
-    let $facet := if ($search-count gt 0) then ft:facets($search-results, $facet-name, ()) else ()
-    return 
+    let $facet := if ($search-count gt 0) then ft:facets($facet-source, $facet-name, ()) else ()
+    return
         if (fn:exists($facet) and fn:count(map:keys($facet)) gt 0) 
         then custom:facet-object($facet, $facet-name, $facets-param) 
         else ()
@@ -131,6 +148,7 @@ return
         map {
             "total" : $search-count,
             "available" : $total-count,
+            "countCapped" : $count-capped,
             "facets" : array { ($selected-facets, $unselected-facets) },
             "results" : array { $results }
         }

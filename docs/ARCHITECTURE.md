@@ -110,6 +110,32 @@ Because state is in URL params, search behavior supports:
 - browser back/forward navigation
 - clean event-driven updates (`params-change`)
 
+## RAG API Contract
+
+These endpoints form the retrieval contract when this app is used as the retrieval layer for RAG.
+
+| Endpoint | Method | Query/Form Params | Response Shape | RAG Use |
+|---|---|---|---|---|
+| `modules/search.xq` | `GET` | `q`, `facets`, `start`, `pagelength`, optional `debug` | `{ total, available, facets, results }` where each result includes `concept`, `snippets`, `uri`, `glossary`, `score` | Primary grounded retrieval |
+| `modules/glossaries.xq` | `GET` | none | JSON array of glossary names | Corpus discovery and scope filters |
+| `modules/upload.xq` | `POST` (multipart) | form field `my-attachment` (one or more files) | `{ results: [{ responseFilename, messages[] }] }` | Ingestion/update of retrieval corpus |
+| `modules/delete.xq` | `GET` | `glossary` | `{ success: true }` | Corpus maintenance and lifecycle |
+| `modules/who-am-i.xq` | `GET` | optional `user` | user identity/group JSON | Auth-aware admin workflows |
+
+### Search Payload Notes
+
+- `facets` parameter accepts one or more facet tokens separated by `~~`.
+- A facet token uses `facet:value` format (with URI-encoding/quoting handled by helper logic).
+- `results[].concept` carries taxonomy context (`term`, `definition`, `altLabel`, `related`, `broader`, `narrower`) for prompt grounding.
+
+### RAG Retrieval Data Flow
+
+1. Orchestrator receives user question.
+2. Orchestrator calls `modules/search.xq` with `q` and optional `facets`.
+3. Backend resolves taxonomy-grounded results and relation links.
+4. Orchestrator assembles context from `results[].concept` and `results[].snippets`.
+5. LLM receives grounded context for answer generation.
+
 ## Packaging and Versioning
 
 ```mermaid
@@ -134,6 +160,20 @@ flowchart LR
 - Gradle assembles XQuery + resources + built frontend assets into XAR.
 - Package version source of truth is `src/main/resources/expath-pkg.xml` (`@version`).
 - `build.gradle` reads that version to name the XAR consistently.
+
+## Runtime Compatibility Targets
+
+| Runtime | Status | Validation Focus |
+|---|---|---|
+| eXist-db 6.4.1 + Java 17 | Known baseline | Existing behavior reference point during migration checks. |
+| eXist-db 7.0.0-beta3 + Java 21 | Migration target | Full-text relevance, facet counts, auth/group behavior, upload/delete flows. |
+
+Recommended migration validation command:
+
+```bash
+cd /Users/lcahlander/IdeaProjects/emh-exist-glossary
+python3 tools/exist_smoke_test.py --base-url "http://localhost:8080/exist/apps/magellan-glossary"
+```
 
 ## Security/Authorization Model
 

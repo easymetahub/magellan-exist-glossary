@@ -3,5 +3,5 @@
   xmlns="http://expath.org/ns/pkg" name="https://magellanmeta.ai/apps/glossary"
   abbrev="magellan-glossary" version="1.0.0" spec="1.0">
   <title>Magellan AI Glossary</title>
-  <dependency processor="http://exist-db.org" semver-min="6.0.0"/>
+  <dependency processor="http://exist-db.org" semver-min="7.0.0-beta3"/>
 </package>

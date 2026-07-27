@@ -38,6 +38,12 @@ interface UploadResponse {
   errorResponse?: { message: string };
 }
 
+interface DeleteResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
 const UPLOAD_URL = '../modules/upload.xq';
 const UPLOAD_FIELD = 'my-attachment';
 const UPLOAD_TIMEOUT_MS = 300_000;
@@ -205,7 +211,11 @@ export class MagellanGlossaryAdminApp extends LitElement {
   private async deleteGlossary(id: string) {
     if (!confirm(`Delete glossary "${id}"?`)) return;
     try {
-      await api('../modules/delete.xq', { params: { glossary: id } });
+      const response = await api<DeleteResponse>('../modules/delete.xq', { params: { glossary: id } });
+      if (!response?.success) {
+        alert(response?.message ?? `Failed to delete "${id}".`);
+        return;
+      }
       await this.loadGlossaries();
     } catch (e) {
       console.error('delete failed', e);

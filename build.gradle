@@ -13,7 +13,7 @@ buildscript {
 }
 
 // Note: no `java` plugin needed — the XAR is a Zip of XQuery + resources.
-// JDK 17 is enforced via .tool-versions / CI.
+// Java 21 is recommended for eXist-db 7.x compatibility.
 
 repositories {
     mavenCentral()
@@ -130,6 +130,38 @@ task buildXAR(type: Zip) {
     include '*/**'
     archiveFileName = "magellan-glossary-${xarVersion}.xar"
     destinationDirectory = file('build/')
+}
+
+// -------- Beta3 preflight checks -----------------------------------------
+
+task validateRdfSamples(type: Exec) {
+    commandLine 'python3', 'tools/rdf_compat_check.py',
+            'samples/IVOAT.rdf',
+            'samples/W3C-SKOS-Primer-Animal.rdf'
+}
+
+task smokeTestDeployed(type: Exec) {
+    onlyIf { project.hasProperty('smokeBaseUrl') }
+
+    doFirst {
+        def args = [
+                'python3',
+                'tools/exist_smoke_test.py',
+                '--base-url', project.findProperty('smokeBaseUrl').toString()
+        ]
+        if (project.hasProperty('smokeUsername')) {
+            args += ['--username', project.findProperty('smokeUsername').toString()]
+        }
+        if (project.hasProperty('smokePassword')) {
+            args += ['--password', project.findProperty('smokePassword').toString()]
+        }
+        commandLine(args)
+    }
+}
+
+task beta3Preflight {
+    dependsOn validateRdfSamples
+    dependsOn smokeTestDeployed
 }
 
 // Task dependencies

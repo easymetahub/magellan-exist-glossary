@@ -51,6 +51,46 @@ declare function custom:prefLabel($name as xs:string)
 };
 
 (:~
+ : Preload preferred labels for a set of relation resource ids.
+ :
+ : @param $ids The rdf:about ids to preload.
+ : @return A map keyed by rdf:about id with the preferred label text sequence.
+ :)
+declare function custom:pref-label-map($ids as xs:string*)
+as map(*)
+{
+    let $distinct-ids := fn:distinct-values($ids[fn:string-length(.) gt 0])
+    let $concepts := collection($config:data-root)//skosxl:Concept[@rdf:about = $distinct-ids]
+    return
+        if (fn:empty($distinct-ids))
+        then map {}
+        else map:merge(
+            for $id in $distinct-ids
+            return map:entry($id, $concepts[@rdf:about = $id]/skosxl:prefLabel/text())
+        )
+};
+
+(:~
+ : Build the JSON object for one relation entry.
+ :)
+declare function custom:relation-object($resource as xs:string?, $glossary-facet as xs:string, $label-cache as map(*))
+as map(*)
+{
+    let $pref-label :=
+        if (fn:exists($resource))
+        then (map:get($label-cache, $resource), custom:prefLabel($resource))[1]
+        else ()
+    return map {
+        'name' : emhjson:concept-value($pref-label),
+        'glossary' : $glossary-facet,
+        'label' :
+            if (fn:exists($pref-label[1]))
+            then emhjson:facet-text('Preferred Label', fn:string($pref-label[1]))
+            else ()
+    }
+};
+
+(:~
  : Generates the JSON object for a facet value.
  :
  : @param $facet-name  The name of the facet from the collection.xconf.
@@ -59,12 +99,12 @@ declare function custom:prefLabel($name as xs:string)
  : @param $qtext       The 'search:qtext' of the search results to find the selected facet value(s)
  : @return The JSON object for creating a facet value entry on the client page
  :)
-declare function custom:facet-value($facet-name as xs:string, $count as xs:integer, $value-name as xs:string, $qtext as xs:string*)
+declare function custom:facet-value($facet-name as xs:string, $count as xs:integer, $value-name as xs:string, $qtext as xs:string*, $label-cache as map(*))
 {
     let $facet-text := emhjson:facet-text($facet-name, $value-name)
     let $display-name :=
         if (fn:starts-with($value-name, "#"))
-        then custom:prefLabel($value-name)
+        then (map:get($label-cache, $value-name), custom:prefLabel($value-name))[1]
         else $value-name
     let $selected := if ($qtext = $facet-text)
                      then fn:true()
@@ -93,12 +133,21 @@ declare function custom:facet-value($facet-name as xs:string, $count as xs:integ
  :)
 declare function custom:facet-object($facet as map(*), $facet-name as xs:string, $qtext as xs:string*) 
 {
-    let $names := 
+    let $max-values := 10
+    let $max-ext-values := 40
+    let $names :=
         for $name in map:keys($facet)
         let $count := map:get($facet, $name)
         order by $count descending, $name ascending
         return $name
-        
+
+    let $visible-names := fn:subsequence($names, 1, $max-values + $max-ext-values)
+    let $label-cache :=
+        custom:pref-label-map(
+            for $name in $visible-names[fn:starts-with(., "#")]
+            return $name
+        )
+
     let $selected-facet := 
         for $facet in $qtext
         return 
@@ -110,15 +159,15 @@ declare function custom:facet-object($facet as map(*), $facet-name as xs:string,
     map {
         "name" : $facet-name,
         "values" : array {
-                for $value in fn:subsequence($names, 1, 10)
-                return custom:facet-value($facet-name, map:get($facet, $value), $value, $selected-facet)
+                for $value in fn:subsequence($visible-names, 1, $max-values)
+                return custom:facet-value($facet-name, map:get($facet, $value), $value, $selected-facet, $label-cache)
             },
         "extvalues" : 
-            if (fn:count($names) gt 10)
+            if (fn:count($visible-names) gt $max-values)
             then
                 array {
-                    for $value in fn:subsequence($names, 11)
-                return custom:facet-value($facet-name, map:get($facet, $value), $value, $selected-facet)
+                    for $value in fn:subsequence($visible-names, $max-values + 1, $max-ext-values)
+                return custom:facet-value($facet-name, map:get($facet, $value), $value, $selected-facet, $label-cache)
                 }
             else ()
     }
@@ -137,6 +186,14 @@ declare function custom:result-object($result as node(), $index as xs:integer, $
 {
     let $uri := fn:base-uri($result)
     let $concept := $result//skosxl:Concept
+    let $glossary-name := $result/env:headers/env:glossaryName/string()
+    let $glossary-facet := emhjson:facet-text('Glossary', $glossary-name)
+    let $relation-ids := fn:distinct-values((
+        $concept/skosxl:related/@rdf:resource/string(),
+        $concept/skosxl:broader/@rdf:resource/string(),
+        $concept/skosxl:narrower/@rdf:resource/string()
+    ))
+    let $label-cache := custom:pref-label-map($relation-ids)
     return
         map {
             'index' : $index,
@@ -147,33 +204,15 @@ declare function custom:result-object($result as node(), $index as xs:integer, $
                             'altLabel' : emhjson:concept-value($concept/skosxl:altLabel),
                             'related' : array { 
                                             for $related in $concept/skosxl:related 
-                                            let $prefLabel := custom:prefLabel($related/@rdf:resource)
-                                            return 
-                                                map {
-                                                    'name' : emhjson:concept-value($prefLabel), 
-                                                    'glossary' : emhjson:facet-text('Glossary', $result/env:headers/env:glossaryName),
-                                                    'label' : emhjson:facet-text('Preferred Label', $prefLabel[1])
-                                                }
+                                            return custom:relation-object($related/@rdf:resource/string(), $glossary-facet, $label-cache)
                                         },
                             'broader' : array { 
                                             for $broader in $concept/skosxl:broader
-                                            let $prefLabel := custom:prefLabel($broader/@rdf:resource)
-                                            return 
-                                                map {
-                                                    'name' : emhjson:concept-value($prefLabel), 
-                                                    'glossary' : emhjson:facet-text('Glossary', $result/env:headers/env:glossaryName),
-                                                    'label' : emhjson:facet-text('Preferred Label', $prefLabel[1])
-                                                }
+                                            return custom:relation-object($broader/@rdf:resource/string(), $glossary-facet, $label-cache)
                                         },
                             'narrower' : array { 
                                             for $narrower in $concept/skosxl:narrower
-                                            let $prefLabel := custom:prefLabel($narrower/@rdf:resource)
-                                            return 
-                                                map { 
-                                                    'name' : emhjson:concept-value($prefLabel), 
-                                                    'glossary' : emhjson:facet-text('Glossary', $result/env:headers/env:glossaryName),
-                                                    'label' : emhjson:facet-text('Preferred Label', $prefLabel[1])
-                                                }
+                                            return custom:relation-object($narrower/@rdf:resource/string(), $glossary-facet, $label-cache)
                                         }
                         },
             'snippets' : array { 
@@ -199,7 +238,7 @@ declare function custom:result-object($result as node(), $index as xs:integer, $
                      },
 :)
             'uri' : fn:base-uri($result),
-            'glossary': $result//env:headers/env:glossaryName/text(),
+            'glossary': $glossary-name,
             'score' : ft:score($result)
         }
 };
