@@ -83,6 +83,8 @@ task cleanDefaultOutput(type: Delete) {
 
 task clean(type: Delete) {
     delete 'build'
+    delete 'src/main/js/skos-app/build'
+    delete 'src/main/js/skos-app/node_modules'
     delete 'src/main/lit/admin/dist'
     delete 'src/main/lit/admin/node_modules'
     delete 'src/main/lit/base/dist'
